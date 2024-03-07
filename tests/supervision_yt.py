@@ -17,6 +17,8 @@ bounding_box_annotator = sv.BoundingBoxAnnotator()
 
 label_annotator = sv.LabelAnnotator()
 
+blur_annotator = sv.BlurAnnotator()
+
 video_path = 'video_samples/milk-bottling-plant.mp4'
 cap = cv2.VideoCapture(video_path)
 
@@ -35,6 +37,12 @@ while cap.isOpened():
     # https://supervision.roboflow.com/latest/detection/core/#detections
     detections = sv.Detections.from_ultralytics(results[0])
     
+    # filtering out low confidence detections
+    # detections = detections[detections.confidence > 0.5]
+    
+    # filtering out all classes except for the first class
+    # detections = detections[detections.class_id == 0]
+    
     label = [
         model.model.names[class_id]
         for class_id
@@ -51,6 +59,11 @@ while cap.isOpened():
         scene=annotated_frame,
         detections=detections,
         labels=label
+    )
+    
+    annotated_frame = blur_annotator.annotate(
+        scene=annotated_frame,
+        detections=detections
     )
     
     out.write(annotated_frame)
